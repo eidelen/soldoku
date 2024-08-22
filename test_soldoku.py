@@ -8,6 +8,10 @@ class Soldoku_Tests(unittest.TestCase):
     test_game = "9,8,4,3,-,7,-,-,6;-,-,-,-,-,-,-,-,3;-,6,-,5,-,-,-,7,-;-,9,8,-,-,-,3,-,4;-,-,-,-,4,-,-,-,-;4,-,3,-,-,-,7,9,-;-,7,-,-,-,4,-,1,-;2,-,-,-,-,-,-,-,-;6,-,-,7,-,1,8,4,5"
     test_game_false_row_less = "-,-,-,-,-,-,-,-,3;-,6,-,5,-,-,-,7,-;-,9,8,-,-,-,3,-,4;-,-,-,-,4,-,-,-,-;4,-,3,-,-,-,7,9,-;-,7,-,-,-,4,-,1,-;2,-,-,-,-,-,-,-,-;6,-,-,7,-,1,8,4,5"
     test_game_false_colval_less = "9,8,4,3,-,7,-,-,6;-,-,-,-,-,-,-,3;-,6,-,5,-,-,-,7,-;-,9,8,-,-,-,3,-,4;-,-,-,-,4,-,-,-,-;4,-,3,-,-,-,7,9,-;-,7,-,-,-,4,-,1,-;2,-,-,-,-,-,-,-,-;6,-,-,7,-,1,8,4,5"
+    test_game_invalid = "9,8,4,3,-,7,-,-,9;-,-,-,-,-,-,-,-,3;-,6,-,5,-,-,-,7,-;-,9,8,-,-,-,3,-,4;-,-,-,-,4,-,-,-,-;4,-,3,-,-,-,7,9,-;-,7,-,-,-,4,-,1,-;2,-,-,-,-,-,-,-,-;6,-,-,7,-,1,8,4,5"
+
+    test_medium_david = "-,-,7,-,-,9,-,3,-;-,6,8,-,-,-,9,2,-;-,-,3,-,-,2,1,-,8;-,7,-,9,-,-,2,4,-;3,-,-,-,-,5,-,-,-;5,9,-,-,-,7,-,-,-;-,-,-,-,2,-,-,9,-;8,-,-,-,5,-,4,-,-;-,-,1,-,-,4,6,-,-"
+    test_difficult_david = "1,-,8,-,-,2,-,-,5;-,-,-,7,-,-,-,-,-;-,-,6,-,4,-,-,-,-;8,-,-,-,-,1,5,-,-;5,-,-,-,2,-,7,3,-;-,-,-,-,9,-,-,-,6;6,3,7,-,-,-,-,-,-;-,-,4,9,-,-,-,8,-;-,-,-,-,1,-,4,-,-"
 
     def test_ctor(self):
         dok = Soldoku(self.test_game)
@@ -82,23 +86,62 @@ class Soldoku_Tests(unittest.TestCase):
         dok = Soldoku(self.test_game)
 
         should_be = 9 * 9 * 9 - (8 * 29)
-        is_now = dok.get_total_number_of_set_values()
+        is_now, min_size, max_size = dok.get_stats_of_set_values()
 
         self.assertEqual(should_be, is_now)
+        self.assertEqual(1, min_size)
+        self.assertEqual(9, max_size)
 
     def test_reduce_all(self):
         dok = Soldoku(self.test_game)
         print("Reducing:")
-        num_set_vals_before = dok.get_total_number_of_set_values()
+        num_set_vals_before, _, _ = dok.get_stats_of_set_values()
         for _ in range(6):
             dok.reduce_all()
-            num_set_vals_after = dok.get_total_number_of_set_values()
+            num_set_vals_after, _, _  = dok.get_stats_of_set_values()
             print("From ", num_set_vals_before, " to ", num_set_vals_after)
             num_set_vals_before = num_set_vals_after
 
         dok.display()
 
-        #self.assertLess(num_set_vals_after, num_set_vals_before)
+        accum_set_sizes, min_size, max_size = dok.get_stats_of_set_values()
+        self.assertEqual(accum_set_sizes, 81)
+        self.assertEqual(min_size, 1)
+        self.assertEqual(max_size, 1)
+
+    def test_solve_valid_easy(self):
+        dok = Soldoku(self.test_game)
+        self.assertTrue(dok.solve())
+        accum_set_sizes, min_size, max_size = dok.get_stats_of_set_values()
+        self.assertEqual(accum_set_sizes, 81)
+        self.assertEqual(min_size, 1)
+        self.assertEqual(max_size, 1)
+
+    def test_solve_invalid(self):
+        dok = Soldoku(self.test_game_invalid)
+        self.assertFalse(dok.solve())
+        print(dok.get_stats_of_set_values())
+
+    def test_solve_valid_medium_david(self):
+        dok = Soldoku(self.test_medium_david)
+        self.assertTrue(dok.solve())
+        accum_set_sizes, min_size, max_size = dok.get_stats_of_set_values()
+        dok.display()
+        self.assertEqual(accum_set_sizes, 81)
+        self.assertEqual(min_size, 1)
+        self.assertEqual(max_size, 1)
+
+    def test_solve_valid_difficult_david(self):
+        dok = Soldoku(self.test_difficult_david)
+        valid = dok.solve()
+        accum_set_sizes, min_size, max_size = dok.get_stats_of_set_values()
+        dok.display()
+        self.assertEqual(valid)
+        self.assertEqual(accum_set_sizes, 81)
+        self.assertEqual(min_size, 1)
+        self.assertEqual(max_size, 1)
+
+
 
 if __name__ == "__main__":
     test = Soldoku_Tests()

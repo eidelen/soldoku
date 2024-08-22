@@ -19,6 +19,18 @@ class Soldoku:
         for row in self.grid:
             print(" | ".join("{" + ",".join(map(str, sorted(cell))) + "}" for cell in row))
 
+    def solve(self) -> bool:
+        accum_sizes, min_size, max_size = self.get_stats_of_set_values()
+        while True:
+            self.reduce_all()
+            new_accum_sizes, min_size, max_size = self.get_stats_of_set_values()
+            if new_accum_sizes == accum_sizes:
+                # no changes anymore
+                break
+            accum_sizes = new_accum_sizes
+
+        return new_accum_sizes == 81 and min_size == 1 and max_size == 1
+
     def reduce_all(self):
         for row_idx in range(9):
             for col_idx in range(9):
@@ -89,15 +101,16 @@ class Soldoku:
 
         return sets
 
-    def get_total_number_of_set_values(self):
+    def get_stats_of_set_values(self):
         """As lower this number, as more solved. Lowest value is 81."""
         cnt = 0
+        min_set_size = 10
+        max_set_size = 0
         for row in self.grid:
             for cell in row:
-                cnt += len(cell)
+                set_size = len(cell)
+                cnt += set_size
+                min_set_size = min(min_set_size, set_size)
+                max_set_size = max(max_set_size, set_size)
 
-        return cnt
-
-# Example usage:
-# sudoku = Soldoku("9,8,-,4,-,-,-,-,1;-,7,-,8,-,3,-,-,6;-,-,1,-,-,9,-,5,-;-,4,-,-,2,-,5,-,-;-,5,-,3,-,8,-,4,-;1,-,6,-,7,-,-,9,-;-,-,4,5,-,-,1,-,-;3,-,-,6,-,2,-,8,-;8,-,-,-,-,1,-,7,4")
-# sudoku.display()
+        return cnt, min_set_size, max_set_size
