@@ -12,13 +12,20 @@ class Soldoku_Tests(unittest.TestCase):
 
     test_medium_david = "-,-,7,-,-,9,-,3,-;-,6,8,-,-,-,9,2,-;-,-,3,-,-,2,1,-,8;-,7,-,9,-,-,2,4,-;3,-,-,-,-,5,-,-,-;5,9,-,-,-,7,-,-,-;-,-,-,-,2,-,-,9,-;8,-,-,-,5,-,4,-,-;-,-,1,-,-,4,6,-,-"
     test_difficult_david = "1,-,8,-,-,2,-,-,5;-,-,-,7,-,-,-,-,-;-,-,6,-,4,-,-,-,-;8,-,-,-,-,1,5,-,-;5,-,-,-,2,-,7,3,-;-,-,-,-,9,-,-,-,6;6,3,7,-,-,-,-,-,-;-,-,4,9,-,-,-,8,-;-,-,-,-,1,-,4,-,-"
+    test_empty_grid = "-,-,-,-,-,-,-,-,-;-,-,-,-,-,-,-,-,-;-,-,-,-,-,-,-,-,-;-,-,-,-,-,-,-,-,-;-,-,-,-,-,-,-,-,-;-,-,-,-,-,-,-,-,-;-,-,-,-,-,-,-,-,-;-,-,-,-,-,-,-,-,-;-,-,-,-,-,-,-,-,-"
 
     def test_ctor(self):
-        dok = Soldoku(self.test_game)
+        dok = Soldoku(field_str=self.test_game)
         self.assertEqual(dok.grid[0][0], {9})
         self.assertEqual(dok.grid[2][1], {6})
         self.assertEqual(dok.grid[8][0], {6})
         self.assertEqual(dok.grid[1][0], dok.full_set)
+        dok_copy = Soldoku(grid=dok.grid)
+        dok_copy.display()
+        self.assertEqual(dok_copy.grid[0][0], {9})
+        self.assertEqual(dok_copy.grid[2][1], {6})
+        self.assertEqual(dok_copy.grid[8][0], {6})
+        self.assertEqual(dok_copy.grid[1][0], dok_copy.full_set)
 
     def test_ctor_assert(self):
         with self.assertRaises(AssertionError) as context:
@@ -135,8 +142,22 @@ class Soldoku_Tests(unittest.TestCase):
         dok = Soldoku(self.test_difficult_david)
         valid = dok.solve()
         accum_set_sizes, min_size, max_size = dok.get_stats_of_set_values()
+        print("")
+        print("David grid_difficult_0")
         dok.display()
-        self.assertEqual(valid)
+        self.assertTrue(valid)
+        self.assertEqual(accum_set_sizes, 81)
+        self.assertEqual(min_size, 1)
+        self.assertEqual(max_size, 1)
+
+    def test_solve_empty_grid(self):
+        dok = Soldoku(self.test_empty_grid)
+        valid = dok.solve()
+        accum_set_sizes, min_size, max_size = dok.get_stats_of_set_values()
+        print("")
+        print("Empty grid")
+        dok.display()
+        self.assertTrue(valid)
         self.assertEqual(accum_set_sizes, 81)
         self.assertEqual(min_size, 1)
         self.assertEqual(max_size, 1)

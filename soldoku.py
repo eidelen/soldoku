@@ -1,19 +1,24 @@
 import time
+import copy
+from typing import List
 
 class Soldoku:
 
     full_set = {1, 2, 3, 4, 5, 6, 7, 8, 9}
 
-    def __init__(self, field_str: str):
-        self.grid = [[self.full_set.copy() for _ in range(9)] for _ in range(9)]
-        rows = field_str.split(';')
-        assert len(rows) == 9
-        for r_idx, row in enumerate(rows):
-            cells = row.split(',')
-            assert len(cells) == 9
-            for c_idx, cell in enumerate(cells):
-                if cell.isdigit():
-                    self.grid[r_idx][c_idx] = {int(cell)}
+    def __init__(self, field_str=None, grid=None):
+        if field_str is not None:
+            self.grid = [[self.full_set.copy() for _ in range(9)] for _ in range(9)]
+            rows = field_str.split(';')
+            assert len(rows) == 9
+            for r_idx, row in enumerate(rows):
+                cells = row.split(',')
+                assert len(cells) == 9
+                for c_idx, cell in enumerate(cells):
+                    if cell.isdigit():
+                        self.grid[r_idx][c_idx] = {int(cell)}
+        else:
+            self.grid = copy.deepcopy(grid)
 
     def display(self):
         for row in self.grid:
@@ -29,7 +34,17 @@ class Soldoku:
                 break
             accum_sizes = new_accum_sizes
 
-        return new_accum_sizes == 81 and min_size == 1 and max_size == 1
+        if min_size == 1 and max_size == 1:
+            return True # We found a valid solution
+        elif min_size > 0 and max_size > 1:
+            best_guesses = self.create_best_guesses()
+            for guess in best_guesses:
+                valid_guess = guess.solve()
+                if valid_guess:
+                    self.grid = guess.grid
+                    return True
+
+        return False
 
     def reduce_all(self):
         for row_idx in range(9):
@@ -100,6 +115,27 @@ class Soldoku:
                     sets.append(self.grid[row_idx_norm][col_idx_norm])
 
         return sets
+
+    def create_best_guesses(self):
+        # identify field with the least choices bigger than 1
+        smallest_set_idx = 0, 0
+        smallest_set_size_of_choices = 10
+        for row_idx in range(9):
+            for col_idx in range(9):
+                set_size = len(self.grid[row_idx][col_idx])
+                if set_size > 1 and set_size < smallest_set_size_of_choices:
+                    smallest_set_size_of_choices = set_size
+                    smallest_set_idx = row_idx, col_idx
+
+        # create new grids by setting these choices
+        best_guesses = []
+        for option in self.grid[smallest_set_idx[0]][smallest_set_idx[1]]:
+            new_grid = Soldoku(grid=self.grid)
+            new_grid.grid[smallest_set_idx[0]][smallest_set_idx[1]] = {option}
+            best_guesses.append(new_grid)
+
+        return best_guesses
+
 
     def get_stats_of_set_values(self):
         """As lower this number, as more solved. Lowest value is 81."""
