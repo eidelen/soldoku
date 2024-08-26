@@ -162,6 +162,10 @@ class Soldoku_Tests(unittest.TestCase):
         self.assertEqual(min_size, 1)
         self.assertEqual(max_size, 1)
 
+    def test_iter(self):
+        for n in range(9):
+            set = {x for x in range(n, 10)}
+            print(set, "->", list(set))
 
 
 if __name__ == "__main__":
