@@ -17,8 +17,10 @@ class Soldoku:
                 for c_idx, cell in enumerate(cells):
                     if cell.isdigit():
                         self.grid[r_idx][c_idx] = {int(cell)}
-        else:
+        elif grid is not None:
             self.grid = copy.deepcopy(grid)
+        else:
+            self.grid = [[self.full_set.copy() for _ in range(9)] for _ in range(9)]
 
     def display(self):
         for row in self.grid:
