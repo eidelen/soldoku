@@ -56,6 +56,12 @@ class SudokuGUI(QWidget):
             self.cells.append(row)
             self.cell_labels.append(label_row)
 
+        # Create statistics Label
+        self.stats_label = QLabel(self)
+        self.stats_label.setFont(QFont("Arial", 18))
+        self.solve_label = QLabel(self)
+        self.solve_label.setFont(QFont("Arial", 18))
+
         # Create the Solve button
         self.solve_button = QPushButton("Solve", self)
         self.solve_button.setFont(QFont("Arial", 18))
@@ -64,28 +70,42 @@ class SudokuGUI(QWidget):
         # Layout setup
         vbox = QVBoxLayout()
         vbox.addLayout(self.grid_layout)
+        vbox.addWidget(self.stats_label)
+        vbox.addWidget(self.solve_label)
         vbox.addWidget(self.solve_button)
         self.setLayout(vbox)
 
         # Initialize the display
-        self.update_grid()
+        self.update_gui()
 
     def create_text_change_callback(self, row, col):
         def callback():
             text = self.cells[row][col].text()
+
             if text.isdigit():
                 self.solver.grid[row][col] = {int(text)}
                 self.solver.reduce_all()
             else:
                 self.solver.grid[row][col] = self.solver_class.full_set.copy()
-            self.update_grid()
+            self.update_gui()
         return callback
 
-    def solve_sudoku(self):
-        self.solver.solve()
-        self.update_grid()
+    def create_grid_from_cells(self):
+        sd = self.solver_class()
+        for row in range(9):
+            for col in range(9):
+                text = self.cells[row][col].text()
+                if text.isdigit():
+                    sd.grid[row][col] = {int(text)}
+        return sd.grid
 
-    def update_grid(self):
+    def solve_sudoku(self):
+        self.solver.grid = self.create_grid_from_cells()
+        success = self.solver.solve()
+        self.solve_label.setText( "Solved!" if success else "Failed to solve!" )
+        self.update_gui()
+
+    def update_gui(self):
         for i in range(9):
             for j in range(9):
                 cell_set = self.solver.grid[i][j]
@@ -96,6 +116,10 @@ class SudokuGUI(QWidget):
 
                 # Update the QLabel with the current set of possible values
                 self.cell_labels[i][j].setText("{" + ",".join(map(str, sorted(cell_set))) + "}")
+
+        accum, min, max = self.solver.get_stats_of_set_values()
+        self.stats_label.setText( "Accumulated choices {}, min {}, max {}".format(accum, min, max) )
+
 
 if __name__ == '__main__':
     from soldoku import Soldoku  # Replace with the actual module name

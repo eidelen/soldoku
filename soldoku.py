@@ -31,8 +31,8 @@ class Soldoku:
         while True:
             self.reduce_all()
             new_accum_sizes, min_size, max_size = self.get_stats_of_set_values()
-            if new_accum_sizes == accum_sizes:
-                # no changes anymore
+            if new_accum_sizes == accum_sizes or min_size == 0:
+                # no changes anymore or invalid solution
                 break
             accum_sizes = new_accum_sizes
 
@@ -57,8 +57,8 @@ class Soldoku:
         assert 0 <= row_idx < 9
         assert 0 <= col_idx < 9
 
-        if len(self.grid[row_idx][col_idx]) == 1:
-            return # nothing to reduce
+        #if len(self.grid[row_idx][col_idx]) == 1:
+        #    return  # nothing to reduce
 
         for neighbour_sets in [self.get_neighbour_block_sets(row_idx, col_idx), self.get_neighbour_vertical_sets(row_idx, col_idx), self.get_neighbour_horizontal_sets(row_idx, col_idx)]:
 
@@ -77,7 +77,6 @@ class Soldoku:
 
                 if not found_second_option:
                     self.grid[row_idx][col_idx] = {my_option}
-
 
     def get_neighbour_horizontal_sets(self, row_idx:int, col_idx:int):
         assert 0 <= row_idx < 9
@@ -140,7 +139,7 @@ class Soldoku:
 
 
     def get_stats_of_set_values(self):
-        """As lower this number, as more solved. Lowest value is 81."""
+        """As lower this number, as more solved. Lowest value is 81. Further on, it gives the min set size and max set size"""
         cnt = 0
         min_set_size = 10
         max_set_size = 0
